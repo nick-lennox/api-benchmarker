@@ -1,34 +1,27 @@
 defmodule OddsJam do
-    @moduledoc """
-    Documentation for `Ingest`.
-    """
-  
-    @base_url "https://jsonplaceholder.typicode.com"
-    @oddsjam_data_dir "#{File.cwd!}/data/oddsjam"
+  use Tesla
 
-    File.mkdir_p!(@oddsjam_data_dir)
+  @base_url "https://api-external.oddsjam.com"
+  @api_version "v2"
+  @api_key System.get_env("ODDSJAM_API_KEY")
 
-    def fetch_data(endpoint, params \\ %{}) do
-        IO.puts @oddsjam_data_dir
-        url = build_url(endpoint)
-        headers = build_headers()
-        case HTTPoison.get(url, headers) do
-            {:ok, %HTTPoison.Response{body: body}} -> 
-                IO.puts body
-                save_to = "#{@oddsjam_data_dir}/response)_#{:os.system_time(:millisecond)}.json"
-                File.write(save_to, body)
-            {:error, %HTTPoison.Error{reason: reason}} -> IO.inspect reason
-        end
-    end
-  
-    defp build_url(endpoint) do
-        "#{@base_url}/#{endpoint}"
-    end
-
-    defp build_headers do
-        %{
-            "Content-Type" => "application/json",
-            "X-Api-Key" => "#{System.get_env("ODDSJAM_API_KEY")}"
-        }
-    end
+  def game_odds(client, params) do
+    get(client, "game-odds", query: params)
   end
+
+  def client do
+    url = build_base_url()
+
+    middleware = [
+      {Tesla.Middleware.BaseUrl, url},
+      Tesla.Middleware.JSON,
+      {Tesla.Middleware.Headers, [{"X-Api-Key", @api_key}]}
+    ]
+
+    Tesla.client(middleware)
+  end
+
+  defp build_base_url do
+    "#{@base_url}/api/#{@api_version}"
+  end
+end

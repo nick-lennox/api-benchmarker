@@ -1,10 +1,12 @@
 defmodule Ingest do
-    import OddsJam, only: [fetch_data: 2]
-    @moduledoc """
-    Documentation for `Ingest`.
-    """
-    def ingest_driver do
-        Stream.repeatedly(fn -> :ok end) 
-        |> Enum.each(fn _ -> fetch_data("todos/1", %{}) end)
-    end
+  require OddsJam
+
+  @moduledoc """
+  Documentation for `Ingest`.
+  """
+  def ingest_driver do
+    client = OddsJam.client()
+    # client |> OddsJam.get("api/v2/leagues?sport=basketball")
+    client |> OddsJam.game_odds([game_id: "40503-38015-2024-05-11", sportsbook: "BetMGM"])
+  end
 end
